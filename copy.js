@@ -187,7 +187,6 @@ class Row {
           obstacles[obstacles.length - 1].x +
           secondLog.width +
           Math.random() * 100;
-        console.log(Math.random() * 100);
         obstacles.push(secondLog);
       }
     }
@@ -286,7 +285,7 @@ class Game {
   generateRows() {
     const rows = [];
     for (let i = 0; i < ROWS; i++) {
-      if (i == ROWS - 1) {
+      if (i == ROWS - 1 || i == ROWS - 2) {
         const y = i * GRID_SIZE;
         const type = OBSTACLE_TYPES.SAFE;
         rows.push(new Row(y, type));
