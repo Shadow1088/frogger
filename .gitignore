@@ -1,0 +1,5 @@
+# .gitignore
+.env.js
+.env
+*.env
+config.local.js
