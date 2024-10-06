@@ -50,6 +50,9 @@ class Frog {
         if (this.x < canvas.width - GRID_SIZE) this.x += GRID_SIZE;
         break;
     }
+    // Ensure frog stays within canvas bounds
+    if (this.x < 0) this.x = 0;
+    if (this.x > canvas.width - FROG_SIZE) this.x = canvas.width - FROG_SIZE;
     this.isOnLog = false; // Reset log status when moving
   }
 
@@ -78,8 +81,6 @@ class Obstacle {
         return 60;
       case OBSTACLE_TYPES.RIVER:
         return 100; // Log width
-      case OBSTACLE_TYPES.TRAIN:
-        return 120;
       default:
         return 60;
     }
@@ -127,20 +128,33 @@ class Obstacle {
 
   drawTrain() {
     // Locomotive
-    ctx.fillStyle = "#333333";
-    const locomotiveWidth = 60;
-    ctx.fillRect(this.x, this.y, locomotiveWidth, this.height);
 
-    // Chimney
-    ctx.fillStyle = "#666666";
-    ctx.fillRect(this.x + 10, this.y - 10, 10, 10);
+    const locomotiveWidth = 60;
 
     // Carriages
     ctx.fillStyle = "#4A4A4A";
     const carriageCount = Math.floor((this.width - locomotiveWidth) / 50);
     for (let i = 0; i < carriageCount; i++) {
-      ctx.fillRect(this.x + locomotiveWidth + i * 50, this.y, 45, this.height);
+      ctx.fillRect(this.x + i * 50, this.y, 45, this.height);
     }
+
+    //locomotive
+    ctx.fillStyle = "#333333";
+    ctx.fillRect(
+      this.x + carriageCount * 50,
+      this.y,
+      locomotiveWidth,
+      this.height,
+    );
+
+    // Chimney
+    ctx.fillStyle = "#666666";
+    ctx.fillRect(
+      this.x + carriageCount * 50 + locomotiveWidth - 20,
+      this.y - 10,
+      10,
+      10,
+    );
 
     // Windows
     ctx.fillStyle = "#FFFF00";
@@ -181,7 +195,7 @@ class Row {
       obstacles.push(new Obstacle(this.y, speed, direction, this.type));
 
       if (this.type === OBSTACLE_TYPES.RIVER) {
-        // Offset the second log by a small gap, e.g., 10px
+        // Offset the second log by a small gap
         const secondLog = new Obstacle(this.y, speed, direction, this.type);
         secondLog.x =
           obstacles[obstacles.length - 1].x +
