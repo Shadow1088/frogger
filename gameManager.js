@@ -1,5 +1,6 @@
 let player_temp = "";
 import config from "./config.js";
+//console.log("I exist");
 
 // Add these constants at the beginning of your code
 const GAME_STATES = {
@@ -233,6 +234,7 @@ class GameManager {
 // Modify the initGame function
 async function initGame() {
   const gameManager = new GameManager();
+  //console.log("tried init");
 
   async function gameLoop() {
     await gameManager.update();
@@ -299,6 +301,6 @@ async function initGame() {
 }
 
 // Make sure to use async/await when calling initGame
-window.onload = () => {
-  initGame().catch(console.error);
-};
+
+//console.log("loaded");
+initGame().catch(console.error);

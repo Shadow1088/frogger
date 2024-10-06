@@ -6,7 +6,7 @@ const config = {
 
 // This will load the environment variables if the file exists
 try {
-  const env = await import("./env.js");
+  const env = await import("./.env.js");
   Object.assign(config, env.default);
 } catch (error) {
   console.warn("No env.js file found. Using empty configuration.");
