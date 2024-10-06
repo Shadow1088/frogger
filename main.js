@@ -201,5 +201,88 @@ class Row {
         Math.random() * 100;
       obstacles.push(secondLog);
     }
+
+    return obstacles;
+  }
+  update() {
+    this.obstacles.forEach((obstacle) => obstacle.update());
+  }
+  draw() {
+    if (this.type === OBSTACLE_TYPES.RIVER) {
+      ctx.fillStyle = "#4444FF";
+      ctx.filleRect(0, this.y, canvas.width, GRID_SQ_SIZE);
+    } else if (this.type === OBSTACLE_TYPES.SAFE) {
+      ctx.fillStyle = "#32a852";
+      ctx.filleRect(0, this.y, canvas.width, GRID_SQ_SIZE);
+    }
+    this.obstacles.forEach((obstacle) => obstacle.draw());
+  }
+}
+
+class TrainRow extends Row {
+  constructor(y) {
+    super(y, OBSTACLE_TYPES.TRAIN);
+    this.trainCooldown = 5000; //5sec
+    this.warningTime = 2000; //2 second warning
+    this.lastTrainTime = Date.Now() - Math.random() * this.trainCooldown; // init delay is random
+    this.isWarning = false;
+    this.train = new Obstacle(y, 12, 1, OBSTACLE_TYPES.TRAIN);
+    this.train.width = canvas.width + 40;
+    this.train.x = -this.train.width;
+    this.isTrainActive = false;
+  }
+
+  update() {
+    const currentTime = Date.now();
+    const lastTrain = currentTime - this.lastTrainTime;
+
+    this.isWarning =
+      lastTrain >= this.trainCooldown - this.warningTime &&
+      lastTrain < this.trainCooldown;
+
+    if (lastTrain >= this.trainCooldown && !this.isTrainActive) {
+      this.isTrainActive = true;
+      this.train.x = -this.train.width;
+    }
+    if (this.isTrainActive) {
+      this.train.x += this.train.speed;
+
+      if (this.train.x > canvas.width) {
+        this.isTrainActive = false;
+        this.lastTrainTime = currentTime;
+      }
+    }
+  }
+  draw() {
+    //warning draw
+    ctx.fillStyle = "#FFA500";
+    ctx.fillRect(0, this.y, canvas.width, GRID_SQ_SIZE);
+
+    //train track draw
+    ctx.fillStyle = "#8B4513";
+
+    if (this.isTrainActive) {
+      this.train.draw();
+    }
+  }
+}
+
+class Game {
+  constructor() {
+    this.frog = new Frog();
+    this.rows = this.generateRows();\
+    this.gameOver = false;
+    this.score = 0;
+  }
+  generateRows(){
+    const rows = [];
+    for (let i = 0; i < ROWS; i++){
+      const y = i * GRID_SQ_SIZE;
+      if (i== ROWS - 1 || i == ROWS-2){
+        const typ
+
+
+      }
+    }
   }
 }

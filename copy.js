@@ -299,12 +299,11 @@ class Game {
   generateRows() {
     const rows = [];
     for (let i = 0; i < ROWS; i++) {
+      const y = i * GRID_SIZE;
       if (i == ROWS - 1 || i == ROWS - 2) {
-        const y = i * GRID_SIZE;
         const type = OBSTACLE_TYPES.SAFE;
         rows.push(new Row(y, type));
       } else {
-        const y = i * GRID_SIZE;
         const type = this.getRandomRowType();
         if (type === OBSTACLE_TYPES.TRAIN) {
           rows.push(new TrainRow(y));
