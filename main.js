@@ -406,7 +406,7 @@ class Game {
     ctx.fillStyle = "white";
     ctx.font = "20px Arial";
     ctx.fillText(`Score: ${this.score}`, 10, 25);
-
+    /*
     if (this.gameOver) {
       console.log("its over");
       ctx.fillStyle = "red";
@@ -418,7 +418,7 @@ class Game {
         canvas.width / 2 - 90,
         canvas.height / 2 + 40,
       );
-    }
+    }*/
   }
 
   reset() {

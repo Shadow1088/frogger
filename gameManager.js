@@ -84,7 +84,8 @@ class GameManager {
     if (this.currentState === GAME_STATES.PLAYING) {
       this.game.update();
       if (this.game.gameOver) {
-        const totalTime = (Date.now() - this.startTime) / 1000;
+        this.endTime = Date.now();
+        const totalTime = ((this.endTime - this.startTime) / 1000).toFixed(1);
         this.updateLeaderboard(this.game.score, totalTime);
         this.currentState = GAME_STATES.GAME_OVER;
       }
@@ -109,6 +110,9 @@ class GameManager {
       case GAME_STATES.LEADERBOARD:
         this.drawMenuBackground();
         this.drawLeaderboard();
+        break;
+      case GAME_STATES.GAME_OVER:
+        this.drawGameOver(); // Draw the Game Over overlay
         break;
     }
   }
@@ -148,11 +152,13 @@ class GameManager {
     ctx.font = "20px Arial";
     ctx.fillText(`Time: ${currentTime}s`, canvas.width - 120, 25);
   }
-  /*
+
   drawGameOver() {
     const totalTime = ((this.endTime - this.startTime) / 1000).toFixed(1);
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+    this.game.draw();
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "red";
@@ -176,11 +182,11 @@ class GameManager {
       canvas.height / 2 + 70,
     );
     ctx.fillText(
-      "Press M for Menu",
-      canvas.width / 2 - 60,
+      "Press ENTER for Menu",
+      canvas.width / 2 - 90,
       canvas.height / 2 + 100,
     );
-    }*/
+  }
 
   startGame() {
     if (!this.playerName) return;
@@ -211,7 +217,7 @@ class GameManager {
     this.leaderboard.forEach((entry, index) => {
       const y = 100 + index * 30;
       ctx.fillText(
-        `${entry.score}. ${entry.playerName} - ${entry.time.toFixed(1)}s`,
+        `${entry.score}. ${entry.playerName} - ${parseFloat(entry.time).toFixed(1)}s`,
         50,
         y,
       );
@@ -246,7 +252,6 @@ function initGame() {
           }
         } else {
           if (event.key === "Enter") {
-            console.log("enter");
             gameManager.startGame();
           } else if (event.key.toLowerCase() === "l") {
             gameManager.currentState = GAME_STATES.LEADERBOARD;
@@ -272,9 +277,18 @@ function initGame() {
         break;
 
       case GAME_STATES.GAME_OVER:
+        //gameManager.drawGameOver();
+        if (event.code === "Space") {
+          gameManager.resetGame();
+          console.log("Space");
+        } else if (event.code === "Enter") {
+          gameManager.returnToMenu();
+        }
+        break;
+
       case GAME_STATES.LEADERBOARD:
         if (event.code === "Space") {
-          gameManager.currentState = GAME_STATES.MENU;
+          gameManager.returnToMenu();
         }
         break;
     }
