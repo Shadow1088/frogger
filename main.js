@@ -13,6 +13,64 @@ const OBSTACLE_TYPES = {
   SAFE: "safe",
 };
 
+class GistLeaderboard {
+  constructor(gistId, githubToken) {
+    this.gistId = gistId;
+    this.githubToken = githubToken;
+  }
+
+  async fetchLeaderboard() {
+    try {
+      const response = await fetch(
+        `https://api.github.com/gists/${this.gistId}`,
+        {
+          headers: {
+            Authorization: `token ${this.githubToken}`,
+          },
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch leaderboard");
+
+      const data = await response.json();
+      const content = data.files["leaderboard.json"].content;
+      return JSON.parse(content);
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      return [];
+    }
+  }
+
+  async updateLeaderboard(newEntries) {
+    try {
+      const response = await fetch(
+        `https://api.github.com/gists/${this.gistId}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `token ${this.githubToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            files: {
+              "leaderboard.json": {
+                content: JSON.stringify(newEntries),
+              },
+            },
+          }),
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to update leaderboard");
+
+      return true;
+    } catch (error) {
+      console.error("Error updating leaderboard:", error);
+      return false;
+    }
+  }
+}
+
 class Frog {
   constructor() {
     this.reset();

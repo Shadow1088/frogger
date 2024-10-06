@@ -1,3 +1,6 @@
+let player_temp = "";
+import config from "./config.js";
+
 // Add these constants at the beginning of your code
 const GAME_STATES = {
   MENU: "menu",
@@ -23,29 +26,32 @@ class GameManager {
     this.menuGame = new Game();
     this.startTime = 0;
     this.endTime = 0;
+
+    // Add the Gist leaderboard
+    this.gistLeaderboard = new GistLeaderboard(
+      config.GIST_ID, //"YOUR_GIST_ID_HERE"
+      config.GITHUB_TOKEN, //"YOUR_GITHUB_TOKEN_HERE",
+    );
+
+    // Change this to async
     this.loadLeaderboard();
   }
 
-  loadLeaderboard() {
-    const storedLeaderboard = localStorage.getItem("froggerLeaderboard");
-    if (storedLeaderboard) {
-      this.leaderboard = JSON.parse(storedLeaderboard);
-    }
+  async loadLeaderboard() {
+    const gistLeaderboard = await this.gistLeaderboard.fetchLeaderboard();
+    this.leaderboard = gistLeaderboard || [];
   }
 
-  saveLeaderboard() {
-    localStorage.setItem(
-      "froggerLeaderboard",
-      JSON.stringify(this.leaderboard),
-    );
+  // ADD this method instead
+  async saveLeaderboard() {
+    await this.gistLeaderboard.updateLeaderboard(this.leaderboard);
   }
 
-  updateLeaderboard(score, time) {
-    for (let i = 1; i <= score; i++) {
-      const entry = new LeaderboardEntry(this.playerName, i, time);
-      this.addLeaderboardEntry(entry);
-    }
-    this.saveLeaderboard();
+  async updateLeaderboard(score, time) {
+    // Only create one entry for the final score
+    const entry = new LeaderboardEntry(this.playerName, score, time);
+    this.addLeaderboardEntry(entry);
+    await this.saveLeaderboard();
   }
 
   addLeaderboardEntry(newEntry) {
@@ -69,14 +75,7 @@ class GameManager {
     });
   }
 
-  startGame() {
-    if (!this.playerName) return;
-    this.currentState = GAME_STATES.PLAYING;
-    this.game.reset();
-    this.startTime = Date.now();
-  }
-
-  update() {
+  async update() {
     if (this.currentState === GAME_STATES.MENU) {
       this.menuGame.rows.forEach((row) => row.update());
     }
@@ -86,7 +85,7 @@ class GameManager {
       if (this.game.gameOver) {
         this.endTime = Date.now();
         const totalTime = ((this.endTime - this.startTime) / 1000).toFixed(1);
-        this.updateLeaderboard(this.game.score, totalTime);
+        await this.updateLeaderboard(this.game.score, totalTime);
         this.currentState = GAME_STATES.GAME_OVER;
       }
     }
@@ -232,33 +231,36 @@ class GameManager {
 }
 
 // Modify the initGame function
-function initGame() {
-  const gameManager = new GameManager(); // Create new instance of GameManager
+async function initGame() {
+  const gameManager = new GameManager();
 
-  function gameLoop() {
-    gameManager.update();
+  async function gameLoop() {
+    await gameManager.update();
     gameManager.draw();
     requestAnimationFrame(gameLoop);
   }
 
-  document.addEventListener("keydown", (event) => {
+  document.addEventListener("keydown", async (event) => {
     switch (gameManager.currentState) {
       case GAME_STATES.MENU:
         if (!gameManager.playerName) {
           if (event.key.length === 1) {
-            gameManager.playerName += event.key;
+            player_temp += event.key;
+            event.preventDefault();
           } else if (event.key === "Backspace") {
-            gameManager.playerName = gameManager.playerName.slice(0, -1);
+            player_temp = player_temp.slice(0, -1);
+          } else if (event.key === "Enter") {
+            gameManager.playerName = player_temp;
           }
         } else {
           if (event.key === "Enter") {
             gameManager.startGame();
           } else if (event.key.toLowerCase() === "l") {
             gameManager.currentState = GAME_STATES.LEADERBOARD;
+            await gameManager.loadLeaderboard(); // Refresh leaderboard when viewing
           }
         }
         break;
-
       case GAME_STATES.PLAYING:
         switch (event.code) {
           case "ArrowUp":
@@ -280,7 +282,6 @@ function initGame() {
         //gameManager.drawGameOver();
         if (event.code === "Space") {
           gameManager.resetGame();
-          console.log("Space");
         } else if (event.code === "Enter") {
           gameManager.returnToMenu();
         }
@@ -297,5 +298,7 @@ function initGame() {
   gameLoop();
 }
 
-// Call initGame when the window loads
-window.onload = initGame;
+// Make sure to use async/await when calling initGame
+window.onload = () => {
+  initGame().catch(console.error);
+};
