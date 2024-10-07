@@ -11,5 +11,5 @@ Frogger was a game back in arcade games age, for most Frogger could be recognize
 This is my project for school representation, I had to rush this because of the little time I had
 
 ## Technologies
-I have written this in pure JS, HTML and CSS clasic combo. I also used Claude AI for more complex tasks I did not know how to handle.
+I have written this in pure JS, HTML and CSS classic combo. I also used Claude AI for more complex tasks I did not know how to handle.
 
