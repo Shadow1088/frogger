@@ -20,6 +20,10 @@ jobs:
           echo "  GIST_ID: '${{ secrets.GIST_ID }}'," >> config.js
           echo "};" >> config.js
           echo "export default config;" >> config.js
+      - name: Debug Secrets
+        run: |
+          echo "TOKEN=${{ secrets.TOKEN }}"
+          echo "GIST_ID=${{ secrets.GIST_ID }}"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
