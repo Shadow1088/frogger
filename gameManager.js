@@ -82,11 +82,21 @@ class GameManager {
     }
 
     if (this.currentState === GAME_STATES.PLAYING) {
+      const previousScore = this.game.score;
       this.game.update();
+
+      // Check if score has increased
+      if (this.game.score > previousScore) {
+        const currentTime = Date.now();
+        const scoreTime = ((currentTime - this.startTime) / 1000).toFixed(1);
+        await this.updateLeaderboard(previousScore + 1, scoreTime);
+      }
+
+      // Handle game over
       if (this.game.gameOver) {
         this.endTime = Date.now();
         const totalTime = ((this.endTime - this.startTime) / 1000).toFixed(1);
-        await this.updateLeaderboard(this.game.score, totalTime);
+        // We don't need to update leaderboard here as it's already updated for each score
         this.currentState = GAME_STATES.GAME_OVER;
       }
     }
