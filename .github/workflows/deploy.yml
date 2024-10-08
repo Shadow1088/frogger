@@ -1,0 +1,28 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Deploy from the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Inject Secrets into config.js
+        run: |
+          echo "const config = {" > config.js
+          echo "  GITHUB_TOKEN: '${{ secrets.TOKEN }}'," >> config.js
+          echo "  GIST_ID: '${{ secrets.GIST_ID }}'," >> config.js
+          echo "};" >> config.js
+          echo "export default config;" >> config.js
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: . # Deploy from the root directory
