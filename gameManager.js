@@ -36,21 +36,21 @@ class GameManager {
     this.loadLeaderboard();
   }
 
-  async loadLeaderboard() {
-    const gistLeaderboard = await this.gistLeaderboard.fetchLeaderboard();
+  loadLeaderboard() {
+    const gistLeaderboard = this.gistLeaderboard.fetchLeaderboard();
     this.leaderboard = gistLeaderboard || [];
   }
 
   // ADD this method instead
-  async saveLeaderboard() {
-    await this.gistLeaderboard.updateLeaderboard(this.leaderboard);
+  saveLeaderboard() {
+    this.gistLeaderboard.updateLeaderboard(this.leaderboard);
   }
 
-  async updateLeaderboard(score, time) {
+  updateLeaderboard(score, time) {
     // Only create one entry for the final score
     const entry = new LeaderboardEntry(this.playerName, score, time);
     this.addLeaderboardEntry(entry);
-    await this.saveLeaderboard();
+    this.saveLeaderboard();
   }
 
   addLeaderboardEntry(newEntry) {
@@ -240,12 +240,12 @@ class GameManager {
 }
 
 // Modify the initGame function
-async function initGame() {
+function initGame() {
   const gameManager = new GameManager();
   //console.log("tried init");
 
-  async function gameLoop() {
-    await gameManager.update();
+  function gameLoop() {
+    gameManager.update();
     gameManager.draw();
     requestAnimationFrame(gameLoop);
   }
