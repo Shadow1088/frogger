@@ -26,31 +26,34 @@ class GameManager {
     this.startTime = 0;
     this.endTime = 0;
 
-    // Add the Gist leaderboard
     this.gistLeaderboard = new GistLeaderboard(
       config.GIST_ID,
       config.GITHUB_TOKEN,
     );
 
-    // Change this to async
     this.loadLeaderboard();
+
+    // Leaderboard scrolling variables
+    this.leaderboardScroll = 0;
+    this.leaderboardMaxScroll = 0;
+    this.leaderboardEntriesPerPage = 8; // Entries per screen
   }
 
   async loadLeaderboard() {
     const gistLeaderboard = await this.gistLeaderboard.fetchLeaderboard();
     this.leaderboard = gistLeaderboard || [];
+    this.updateLeaderboardScroll();
   }
 
-  // ADD this method instead
-  async saveLeaderboard() {
-    await this.gistLeaderboard.updateLeaderboard(this.leaderboard);
+  saveLeaderboard() {
+    this.gistLeaderboard.updateLeaderboard(this.leaderboard);
   }
 
-  async updateLeaderboard(score, time) {
+  updateLeaderboard(score, time) {
     // Only create one entry for the final score
     const entry = new LeaderboardEntry(this.playerName, score, time);
     this.addLeaderboardEntry(entry);
-    await this.saveLeaderboard();
+    this.saveLeaderboard();
   }
 
   addLeaderboardEntry(newEntry) {
@@ -72,9 +75,22 @@ class GameManager {
       if (b.score !== a.score) return b.score - a.score;
       return a.time - b.time;
     });
+
+    this.updateLeaderboardScroll(); // Update scrolling after adding an entry
   }
 
-  async update() {
+  updateLeaderboardScroll() {
+    this.leaderboardMaxScroll = Math.max(
+      0,
+      Math.ceil(this.leaderboard.length / this.leaderboardEntriesPerPage) - 1,
+    );
+    this.leaderboardScroll = Math.min(
+      this.leaderboardScroll,
+      this.leaderboardMaxScroll,
+    );
+  }
+
+  update() {
     if (this.currentState === GAME_STATES.MENU) {
       this.menuGame.rows.forEach((row) => row.update());
     }
@@ -87,7 +103,7 @@ class GameManager {
       if (this.game.score > previousScore) {
         const currentTime = Date.now();
         const scoreTime = ((currentTime - this.startTime) / 1000).toFixed(1);
-        await this.updateLeaderboard(previousScore + 1, scoreTime);
+        this.updateLeaderboard(previousScore + 1, scoreTime);
       }
 
       // Handle game over
@@ -144,6 +160,7 @@ class GameManager {
       ctx.fillText("Enter your name:", canvas.width / 2 - 70, 200);
       ctx.strokeStyle = "green";
       ctx.strokeRect(canvas.width / 2 - 100, 220, 200, 40);
+      ctx.fillText(player_temp, canvas.width / 2 - 90, 245);
     } else {
       ctx.fillText(`Welcome, ${this.playerName}!`, canvas.width / 2 - 70, 200);
       ctx.fillText("Press ENTER to Play", canvas.width / 2 - 70, 250);
@@ -219,17 +236,30 @@ class GameManager {
 
     ctx.fillStyle = "green";
     ctx.font = "30px Arial";
-    ctx.fillText("Leaderboard", canvas.width / 2 - 70, 50);
+    ctx.fillText("Leaderboard", canvas.width / 2 - 70, 55);
+    ctx.font = "12px Arial";
+    ctx.fillText("*leaderboard is cleared after every bug fix", 20, 20);
 
     ctx.font = "20px Arial";
-    this.leaderboard.forEach((entry, index) => {
-      const y = 100 + index * 30;
+
+    // Calculate start and end index for the current page
+    const startIndex = this.leaderboardScroll * this.leaderboardEntriesPerPage;
+    const endIndex =
+      startIndex + this.leaderboardEntriesPerPage > this.leaderboard.length
+        ? this.leaderboard.length
+        : startIndex + this.leaderboardEntriesPerPage;
+
+    for (let i = startIndex; i < endIndex; i++) {
+      const entry = this.leaderboard[i];
+      const y = 100 + (i - startIndex) * 30; // Adjust y for the current page
       ctx.fillText(
-        `${entry.score}. ${entry.playerName} - ${parseFloat(entry.time).toFixed(1)}s`,
+        `${entry.score}. ${entry.playerName} - ${parseFloat(entry.time).toFixed(
+          1,
+        )}s`,
         50,
         y,
       );
-    });
+    }
 
     ctx.fillText(
       "Press SPACE to return to menu",
@@ -240,12 +270,11 @@ class GameManager {
 }
 
 // Modify the initGame function
-async function initGame() {
+function initGame() {
   const gameManager = new GameManager();
-  //console.log("tried init");
 
-  async function gameLoop() {
-    await gameManager.update();
+  function gameLoop() {
+    gameManager.update();
     gameManager.draw();
     requestAnimationFrame(gameLoop);
   }
@@ -256,6 +285,8 @@ async function initGame() {
         if (!gameManager.playerName) {
           if (event.key.length === 1) {
             player_temp += event.key;
+
+            console.log("key press");
             event.preventDefault();
           } else if (event.key === "Backspace") {
             player_temp = player_temp.slice(0, -1);
@@ -289,7 +320,6 @@ async function initGame() {
         break;
 
       case GAME_STATES.GAME_OVER:
-        //gameManager.drawGameOver();
         if (event.code === "Space") {
           gameManager.resetGame();
         } else if (event.code === "Enter") {
@@ -300,6 +330,16 @@ async function initGame() {
       case GAME_STATES.LEADERBOARD:
         if (event.code === "Space") {
           gameManager.returnToMenu();
+        } else if (
+          event.code === "ArrowUp" &&
+          gameManager.leaderboardScroll > 0
+        ) {
+          gameManager.leaderboardScroll--;
+        } else if (
+          event.code === "ArrowDown" &&
+          gameManager.leaderboardScroll < gameManager.leaderboardMaxScroll
+        ) {
+          gameManager.leaderboardScroll++;
         }
         break;
     }
@@ -308,7 +348,4 @@ async function initGame() {
   gameLoop();
 }
 
-// Make sure to use async/await when calling initGame
-
-//console.log("loaded");
 initGame().catch(console.error);
