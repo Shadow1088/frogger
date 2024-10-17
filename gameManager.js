@@ -1,8 +1,6 @@
 let player_temp = "";
 import config from "./config.js";
-//console.log("I exist");
 
-// Add these constants at the beginning of your code
 const GAME_STATES = {
   MENU: "menu",
   PLAYING: "playing",
@@ -30,8 +28,8 @@ class GameManager {
 
     // Add the Gist leaderboard
     this.gistLeaderboard = new GistLeaderboard(
-      config.GIST_ID, //"YOUR_GIST_ID_HERE"
-      config.GITHUB_TOKEN, //"YOUR_GITHUB_TOKEN_HERE",
+      config.GIST_ID,
+      config.GITHUB_TOKEN,
     );
 
     // Change this to async
