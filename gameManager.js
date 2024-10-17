@@ -26,22 +26,19 @@ class GameManager {
     this.startTime = 0;
     this.endTime = 0;
 
-    // Add the Gist leaderboard
     this.gistLeaderboard = new GistLeaderboard(
       config.GIST_ID,
       config.GITHUB_TOKEN,
     );
 
-    // Change this to async
     this.loadLeaderboard();
   }
 
-  loadLeaderboard() {
-    const gistLeaderboard = this.gistLeaderboard.fetchLeaderboard();
+  async loadLeaderboard() {
+    const gistLeaderboard = await this.gistLeaderboard.fetchLeaderboard();
     this.leaderboard = gistLeaderboard || [];
   }
 
-  // ADD this method instead
   saveLeaderboard() {
     this.gistLeaderboard.updateLeaderboard(this.leaderboard);
   }
@@ -74,7 +71,7 @@ class GameManager {
     });
   }
 
-  async update() {
+  update() {
     if (this.currentState === GAME_STATES.MENU) {
       this.menuGame.rows.forEach((row) => row.update());
     }
@@ -87,7 +84,7 @@ class GameManager {
       if (this.game.score > previousScore) {
         const currentTime = Date.now();
         const scoreTime = ((currentTime - this.startTime) / 1000).toFixed(1);
-        await this.updateLeaderboard(previousScore + 1, scoreTime);
+        this.updateLeaderboard(previousScore + 1, scoreTime);
       }
 
       // Handle game over
