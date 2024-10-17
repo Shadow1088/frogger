@@ -7,10 +7,10 @@ const ROWS = 10; // Total number of rows excluding start and end zones
 
 // Define types of obstacles
 const OBSTACLE_TYPES = {
-  CAR: "car",
-  RIVER: "river",
-  TRAIN: "train",
-  SAFE: "safe",
+  CAR: 0,
+  RIVER: 1,
+  TRAIN: 2,
+  SAFE: 3,
 };
 
 class GistLeaderboard {
@@ -74,7 +74,6 @@ class GistLeaderboard {
 class Frog {
   constructor() {
     this.reset();
-    this.isOnLog = false;
   }
 
   reset() {
@@ -134,14 +133,8 @@ class Obstacle {
   }
 
   getWidth() {
-    switch (this.type) {
-      case OBSTACLE_TYPES.CAR:
-        return 60;
-      case OBSTACLE_TYPES.RIVER:
-        return 100; // Log width
-      default:
-        return 60;
-    }
+    if (this.type == OBSTACLE_TYPES.RIVER) return 100;
+    else return 60;
   }
 
   reset() {
@@ -285,13 +278,13 @@ class Row {
 class TrainRow extends Row {
   constructor(y) {
     super(y, OBSTACLE_TYPES.TRAIN);
-    this.trainCooldown = 5000; // 10 seconds in milliseconds
-    this.warningTime = 2000; // 2 seconds warning
+    this.trainCooldown = 5000; // x seconds in milliseconds
+    this.warningTime = 2000; // x seconds warning
     this.lastTrainTime = Date.now() - Math.random() * this.trainCooldown; // Random initial delay
     this.isWarning = false;
     this.train = new Obstacle(y, 12, 1, OBSTACLE_TYPES.TRAIN); // Higher speed for train
     this.train.width = canvas.width + 40; // Make train longer than canvas
-    this.train.x = -this.train.width; // Start off-screen
+    this.train.x = -this.train.width;
     this.isTrainActive = false;
   }
 
@@ -358,7 +351,7 @@ class Game {
     const rows = [];
     for (let i = 0; i < ROWS; i++) {
       const y = i * GRID_SIZE;
-      if (i == ROWS - 1 || i == ROWS - 2) {
+      if (i >= ROWS - 2) {
         const type = OBSTACLE_TYPES.SAFE;
         rows.push(new Row(y, type));
       } else {
@@ -374,24 +367,18 @@ class Game {
   }
 
   getRandomRowType() {
-    const types = [
-      OBSTACLE_TYPES.CAR,
-      OBSTACLE_TYPES.RIVER,
-      OBSTACLE_TYPES.TRAIN,
-      OBSTACLE_TYPES.SAFE,
-    ];
     const weights = [40, 30, 20, 15]; // Adjusted weights to make trains less common
 
     const totalWeight = weights.reduce((a, b) => a + b, 0);
     let random = Math.random() * totalWeight;
 
-    for (let i = 0; i < types.length; i++) {
+    for (let i = 0; i < Object.keys(OBSTACLE_TYPES).length; i++) {
       if (random < weights[i]) {
-        return types[i];
+        return OBSTACLE_TYPES[Object.keys(OBSTACLE_TYPES)[i]];
       }
       random -= weights[i];
     }
-    return types[0];
+    return OBSTACLE_TYPES[Object.keys(OBSTACLE_TYPES)[0]];
   }
 
   checkCollision() {
